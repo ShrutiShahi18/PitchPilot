@@ -56,6 +56,7 @@ NODE_ENV=production
 PORT=10000
 MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/pitchpilot?retryWrites=true&w=majority
 JWT_SECRET=your-super-secret-jwt-key-change-this
+FRONTEND_URL=https://pitchpilot-ii5s.onrender.com
 AI_PROVIDER=gemini
 GEMINI_API_KEY=your-gemini-api-key
 GMAIL_CLIENT_ID=your-gmail-client-id
@@ -64,6 +65,8 @@ GMAIL_REFRESH_TOKEN=your-gmail-refresh-token
 GMAIL_SENDER=your-email@gmail.com
 GMAIL_REDIRECT_URI=https://developers.google.com/oauthplayground
 ```
+
+**Note:** `FRONTEND_URL` is optional - the backend already includes `https://pitchpilot-ii5s.onrender.com` in the allowed origins. Set this if your frontend URL is different.
 
 **Important Notes:**
 - `MONGO_URI`: Get this from MongoDB Atlas → Connect → Connect your application
@@ -119,32 +122,40 @@ Click **"Create Static Site"** and wait for deployment.
 
 ## Step 4: Update CORS Settings
 
-### 4.1 Update Backend CORS
+### 4.1 Backend CORS Configuration
 
-Edit `src/index.js` to allow your frontend domain:
+The backend CORS is already configured in `src/index.js` to allow:
+- `http://localhost:5173` (local development)
+- `http://localhost:3000` (alternative local port)
+- `https://pitchpilot-ii5s.onrender.com` (production frontend)
+- `process.env.FRONTEND_URL` (if set in environment variables)
 
-```javascript
-const cors = require('cors');
+**If your frontend URL is different**, you can either:
 
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'https://pitchpilot-web.onrender.com',
-  credentials: true
-};
-
-app.use(cors(corsOptions));
+**Option 1: Set FRONTEND_URL environment variable** (Recommended)
+Add to your backend service environment variables in Render:
+```
+FRONTEND_URL=https://your-frontend-url.onrender.com
 ```
 
-Or for multiple environments:
+**Option 2: Update src/index.js directly**
+Edit the `allowedOrigins` array in `src/index.js`:
 
 ```javascript
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://pitchpilot-web.onrender.com'
-];
+  'http://localhost:3000',
+  'https://pitchpilot-ii5s.onrender.com', // Your frontend URL
+  process.env.FRONTEND_URL
+].filter(Boolean);
+```
 
+The current CORS configuration:
+
+```javascript
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
