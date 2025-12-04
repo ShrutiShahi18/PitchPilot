@@ -1,6 +1,6 @@
 ## PitchPilot (MERN) – AI-Powered HR Cold Emailer
 
-> 🚀 **Live Demo:** [https://pitchpilot-ii5s.onrender.com](https://pitchpilot-ii5s.onrender.com)  
+> 🚀 **Live Demo:** [https://pitchpilotpitchpilot.onrender.com](https://pitchpilotpitchpilot.onrender.com)  
 > 📡 **API:** [https://pitchpilot-api.onrender.com](https://pitchpilot-api.onrender.com)  
 > 📦 **Ready to deploy?** See [DEPLOYMENT.md](./DEPLOYMENT.md) for step-by-step Render deployment guide.
 

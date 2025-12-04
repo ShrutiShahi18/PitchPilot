@@ -127,7 +127,8 @@ Click **"Create Static Site"** and wait for deployment.
 The backend CORS is already configured in `src/index.js` to allow:
 - `http://localhost:5173` (local development)
 - `http://localhost:3000` (alternative local port)
-- `https://pitchpilot-ii5s.onrender.com` (production frontend)
+- `https://pitchpilotpitchpilot.onrender.com` (production frontend)
+- `https://pitchpilot-ii5s.onrender.com` (previous frontend URL - kept for compatibility)
 - `process.env.FRONTEND_URL` (if set in environment variables)
 
 **If your frontend URL is different**, you can either:
@@ -145,7 +146,7 @@ Edit the `allowedOrigins` array in `src/index.js`:
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://pitchpilot-ii5s.onrender.com', // Your frontend URL
+  'https://pitchpilotpitchpilot.onrender.com', // Your frontend URL
   process.env.FRONTEND_URL
 ].filter(Boolean);
 ```
