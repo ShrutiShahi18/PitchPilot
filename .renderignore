@@ -1,0 +1,14 @@
+# Render ignore file (similar to .gitignore)
+node_modules/
+client/node_modules/
+.env
+.env.local
+.env.*.local
+uploads/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+

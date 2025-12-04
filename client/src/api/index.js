@@ -1,4 +1,5 @@
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/$/, '');
+// Use Render API URL by default, fallback to localhost for local development
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://pitchpilot-api.onrender.com/api').replace(/\/$/, '');
 
 // Get auth token from localStorage
 function getToken() {

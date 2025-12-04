@@ -1,0 +1,43 @@
+services:
+  # Backend API Service
+  - type: web
+    name: pitchpilot-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false  # Set this in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false  # Set this in Render dashboard
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GMAIL_CLIENT_ID
+        sync: false  # Set this in Render dashboard
+      - key: GMAIL_CLIENT_SECRET
+        sync: false  # Set this in Render dashboard
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false  # Set this in Render dashboard
+      - key: GMAIL_SENDER
+        sync: false  # Set this in Render dashboard
+
+  # Frontend Service
+  - type: web
+    name: pitchpilot-web
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: ./client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://pitchpilot-api.onrender.com/api
+

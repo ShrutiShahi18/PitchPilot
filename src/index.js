@@ -22,11 +22,31 @@ logger.info('Environment check', {
 // Create Express app
 const app = express();
 
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL
+].filter(Boolean); // Remove undefined values
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 // Basic middleware
-app.use(cors());
-app.use(bodyParser.json({ limit: '1mb' }));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(morgan('dev')); // optional; remove if you don't use morgan
+app.use(bodyParser.json({ limit: '10mb' })); // Increased for file uploads
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // --- Mount API routes ---
 const routes = require('./routes');
@@ -77,9 +97,10 @@ async function start() {
   }
   
   const port = config.port || 4000;
-  app.listen(port, () => {
-    console.log(`PitchPilot backend listening on port ${port} (env=${config.nodeEnv})`);
-    logger && logger.info && logger.info(`Server started on port ${port}`);
+  const host = process.env.HOST || '0.0.0.0'; // Render requires 0.0.0.0
+  app.listen(port, host, () => {
+    console.log(`PitchPilot backend listening on ${host}:${port} (env=${config.nodeEnv})`);
+    logger && logger.info && logger.info(`Server started on ${host}:${port}`);
   });
 }
 
