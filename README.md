@@ -1,7 +1,7 @@
 ## PitchPilot (MERN) – AI-Powered HR Cold Emailer
 
-> 🚀 **Live Demo:** [https://pitchpilot-web.onrender.com]((https://pitchpilot-ii5s.onrender.com))  
-> 📡 **API:** [https://pitchpilot-api.onrender.com]((https://pitchpilot-api.onrender.com))  
+> 🚀 **Live Demo:** [https://pitchpilot-ii5s.onrender.com](https://pitchpilot-ii5s.onrender.com)  
+> 📡 **API:** [https://pitchpilot-api.onrender.com](https://pitchpilot-api.onrender.com)  
 > 📦 **Ready to deploy?** See [DEPLOYMENT.md](./DEPLOYMENT.md) for step-by-step Render deployment guide.
 
 PitchPilot is an end-to-end MERN starter that shows recruiters you can automate real outbound workflows:
