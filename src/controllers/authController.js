@@ -26,30 +26,47 @@ const signup = catchAsync(async (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
-  // Check if user already exists
-  const existing = await User.findOne({ email: email.toLowerCase() });
-  if (existing) {
-    return res.status(409).json({ error: 'User with this email already exists' });
-  }
-
-  // Create user
-  const user = await User.create({
-    name,
-    email: email.toLowerCase(),
-    password
-  });
-
-  // Generate token
-  const token = generateToken(user._id);
-
-  res.status(201).json({
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email
+  try {
+    // Check if user already exists
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(409).json({ error: 'User with this email already exists' });
     }
-  });
+
+    // Create user
+    const user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      password
+    });
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    logger.error('Signup error', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      stack: error.stack
+    });
+    
+    // Handle specific MongoDB errors
+    if (error.name === 'MongoServerError' && error.code === 11000) {
+      return res.status(409).json({ error: 'User with this email already exists' });
+    }
+    
+    // Re-throw to be caught by error handler
+    throw error;
+  }
 });
 
 /**

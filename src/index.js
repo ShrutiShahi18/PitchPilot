@@ -9,6 +9,7 @@ const bodyParser = require('body-parser');
 
 const config = require('./config/env'); // your existing env loader
 const logger = require('./utils/logger'); // preserve your logger usage if exists
+const mongoose = require('mongoose');
 
 // Log env status at startup (for debugging)
 logger.info('Environment check', {
@@ -87,20 +88,31 @@ const { scheduleFollowUpChecks } = require('./services/followupService');
 async function start() {
   try {
     await connectDB();
+    logger.info('Database connected successfully');
     scheduleFollowUpChecks();
   } catch (error) {
-    logger.error('Database connection failed, but continuing anyway (some features may not work)', {
-      message: error.message
+    logger.error('Database connection failed', {
+      message: error.message,
+      code: error.code
     });
-    // Don't exit - allow server to start even without DB for development
-    // In production, you might want to exit here
+    
+    // In production, exit if DB connection fails
+    if (config.nodeEnv === 'production') {
+      logger.error('Exiting due to database connection failure in production');
+      process.exit(1);
+    } else {
+      logger.warn('Continuing without database (development mode)');
+    }
   }
   
   const port = config.port || 4000;
   const host = process.env.HOST || '0.0.0.0'; // Render requires 0.0.0.0
   app.listen(port, host, () => {
     console.log(`PitchPilot backend listening on ${host}:${port} (env=${config.nodeEnv})`);
-    logger && logger.info && logger.info(`Server started on ${host}:${port}`);
+    logger.info(`Server started on ${host}:${port}`, {
+      nodeEnv: config.nodeEnv,
+      mongoConnected: mongoose.connection.readyState === 1
+    });
   });
 }
 

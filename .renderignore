@@ -12,3 +12,6 @@ uploads/
 *.swp
 *.swo
 
+# Optional: Uncomment to exclude utility scripts (not needed for app to run)
+# scripts/
+
