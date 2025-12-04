@@ -30,3 +30,9 @@ build/
 client/dist/
 client/build/
 
+# Large media files (upload to YouTube/Vimeo instead)
+*.mp4
+*.mov
+*.avi
+Recording*.mp4
+
