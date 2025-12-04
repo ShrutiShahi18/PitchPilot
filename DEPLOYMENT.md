@@ -151,11 +151,19 @@ app.use(cors({
 }));
 ```
 
-### 4.2 Update MongoDB Atlas Whitelist
+### 4.2 Update MongoDB Atlas Network Access (CRITICAL!)
 
-1. Go to MongoDB Atlas → Network Access
-2. Add IP Address: `0.0.0.0/0` (allows all IPs - required for Render)
-3. Or add Render's IP ranges (check Render docs)
+**⚠️ This is the #1 cause of database connection errors!**
+
+1. Go to MongoDB Atlas → **Network Access** (NOT Database Access)
+2. Click **"Add IP Address"**
+3. Click **"Allow Access from Anywhere"** (this adds `0.0.0.0/0`)
+4. Click **"Confirm"**
+5. **Wait 2-3 minutes** for changes to propagate globally
+
+**Why:** Render uses dynamic IP addresses that change. You MUST allow all IPs (`0.0.0.0/0`) for Render to work.
+
+**See [QUICK_FIX_IP_WHITELIST.md](./QUICK_FIX_IP_WHITELIST.md) for step-by-step visual guide.**
 
 ---
 
@@ -169,10 +177,23 @@ app.use(cors({
 
 ## Troubleshooting
 
+### Database Connection Error (500)
+
+**Most Common Issue:** MongoDB Atlas Network Access
+
+1. Go to MongoDB Atlas → Network Access
+2. Click "Add IP Address"
+3. Click "Allow Access from Anywhere" (adds `0.0.0.0/0`)
+4. Wait 1-2 minutes for changes to propagate
+5. Verify cluster is running (not paused)
+
+**See [MONGODB_SETUP.md](./MONGODB_SETUP.md) for detailed MongoDB setup guide.**
+
 ### Backend won't start
 - Check logs in Render dashboard
 - Verify all environment variables are set
 - Ensure `MONGO_URI` includes database name: `.../pitchpilot?retryWrites=true`
+- Check `JWT_SECRET` is set
 
 ### Frontend can't connect to API
 - Verify `VITE_API_URL` is correct
@@ -183,6 +204,8 @@ app.use(cors({
 - Verify MongoDB Atlas IP whitelist includes `0.0.0.0/0`
 - Check `MONGO_URI` format is correct
 - Ensure database user has read/write permissions
+- Verify cluster is running (not paused on free tier)
+- Check connection string includes database name: `/pitchpilot`
 
 ### Gmail API errors
 - Verify all Gmail credentials are set correctly

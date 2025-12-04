@@ -57,7 +57,21 @@ app.use('/api', routes);
 // app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
 
 // --- Health check ---
-app.get('/_health', (req, res) => res.json({ status: 'ok', env: config.nodeEnv }));
+app.get('/_health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  const dbReadyState = mongoose.connection.readyState; // 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+  
+  res.json({ 
+    status: dbStatus === 'connected' ? 'ok' : 'degraded',
+    env: config.nodeEnv,
+    database: dbStatus,
+    databaseReadyState: dbReadyState,
+    timestamp: new Date().toISOString(),
+    message: dbStatus === 'connected' 
+      ? 'Server and database are operational' 
+      : 'Server running but database not connected'
+  });
+});
 
 // --- Debug endpoint to check env vars (remove in production) ---
 app.get('/_debug/env', (req, res) => {

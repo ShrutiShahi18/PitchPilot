@@ -41,7 +41,8 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-userSchema.index({ email: 1 }, { unique: true });
+// Note: email field already has unique: true in schema, which automatically creates an index
+// No need for explicit index() call here
 
 module.exports = model('User', userSchema);
 

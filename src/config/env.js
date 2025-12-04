@@ -1,15 +1,26 @@
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Load .env from project root (explicit path)
-const envPath = path.resolve(__dirname, '..', '..', '.env');
-const result = dotenv.config({ path: envPath });
+// Only load .env file in development (not in production where env vars come from Render)
+const nodeEnv = process.env.NODE_ENV || 'development';
 
-if (result.error) {
-  console.warn('Warning: .env file not found or error loading:', result.error.message);
+if (nodeEnv === 'development') {
+  // Load .env from project root (explicit path)
+  const envPath = path.resolve(__dirname, '..', '..', '.env');
+  const result = dotenv.config({ path: envPath });
+
+  if (result.error) {
+    // Only warn in development - in production, env vars come from Render
+    console.warn('Warning: .env file not found or error loading:', result.error.message);
+    console.warn('This is normal if you haven\'t created a .env file yet.');
+  } else {
+    console.log(`✓ Loaded .env from: ${envPath}`);
+    console.log(`✓ Found ${Object.keys(result.parsed || {}).length} environment variables`);
+  }
 } else {
-  console.log(`✓ Loaded .env from: ${envPath}`);
-  console.log(`✓ Found ${Object.keys(result.parsed || {}).length} environment variables`);
+  // In production, environment variables come from Render dashboard
+  // No need to load .env file
+  console.log('✓ Running in production mode - using environment variables from Render');
 }
 
 const config = {
