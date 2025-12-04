@@ -19,7 +19,21 @@ export default function Signup() {
       localStorage.setItem('user', JSON.stringify(user));
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Signup failed. Please try again.');
+      // Show more detailed error messages
+      let errorMessage = err.message || 'Signup failed. Please try again.';
+      
+      if (err.isNetworkError) {
+        errorMessage = err.message;
+      } else if (err.status === 500) {
+        errorMessage = 'Server error. Please check if the backend is running and try again.';
+      } else if (err.status === 409) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (err.body?.message) {
+        errorMessage = err.body.message;
+      }
+      
+      setError(errorMessage);
+      console.error('Signup error:', err);
     } finally {
       setLoading(false);
     }

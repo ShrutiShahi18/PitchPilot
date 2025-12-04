@@ -1,6 +1,11 @@
 // Use Render API URL by default, fallback to localhost for local development
 const API_BASE = (import.meta.env.VITE_API_URL || 'https://pitchpilot-api.onrender.com/api').replace(/\/$/, '');
 
+// Log API base URL in development
+if (import.meta.env.DEV) {
+  console.log('🔗 API Base URL:', API_BASE);
+}
+
 // Get auth token from localStorage
 function getToken() {
   return localStorage.getItem('token');
@@ -8,35 +13,62 @@ function getToken() {
 
 async function request(path, { method = 'GET', body, headers } = {}) {
   const token = getToken();
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...(headers || {})
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
+  const url = `${API_BASE}${path}`;
+  
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(headers || {})
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
 
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-
-  if (!res.ok) {
-    // If unauthorized, clear token and redirect to signin
-    if (res.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      if (window.location.pathname !== '/signin' && window.location.pathname !== '/signup') {
-        window.location.href = '/signin';
-      }
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (parseError) {
+      // If response isn't JSON, use the text as error message
+      data = { error: text || 'Invalid response from server' };
     }
-    const error = new Error(data?.error || `Request failed (${res.status})`);
-    error.status = res.status;
-    error.body = data;
+
+    if (!res.ok) {
+      // If unauthorized, clear token and redirect to signin
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/signin' && window.location.pathname !== '/signup') {
+          window.location.href = '/signin';
+        }
+      }
+      
+      // Extract error message from response
+      const errorMessage = data?.message || data?.error || `Request failed (${res.status})`;
+      const error = new Error(errorMessage);
+      error.status = res.status;
+      error.body = data;
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    // Handle network errors (connection refused, timeout, etc.)
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      const networkError = new Error(
+        `Cannot connect to server at ${API_BASE}. ` +
+        `Please check if the backend is running. ` +
+        `For local development, set VITE_API_URL=http://localhost:4000/api in client/.env`
+      );
+      networkError.status = 0;
+      networkError.isNetworkError = true;
+      throw networkError;
+    }
+    // Re-throw other errors
     throw error;
   }
-
-  return data;
 }
 
 // Auth functions
@@ -50,32 +82,55 @@ async function uploadResume(file) {
   formData.append('resume', file);
   
   const token = getToken();
-  const res = await fetch(`${API_BASE}/resume/upload`, {
-    method: 'POST',
-    headers: {
-      ...(token && { Authorization: `Bearer ${token}` })
-    },
-    body: formData
-  });
+  const url = `${API_BASE}/resume/upload`;
+  
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: formData
+    });
 
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-
-  if (!res.ok) {
-    if (res.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      if (window.location.pathname !== '/signin' && window.location.pathname !== '/signup') {
-        window.location.href = '/signin';
-      }
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (parseError) {
+      data = { error: text || 'Invalid response from server' };
     }
-    const error = new Error(data?.error || `Request failed (${res.status})`);
-    error.status = res.status;
-    error.body = data;
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/signin' && window.location.pathname !== '/signup') {
+          window.location.href = '/signin';
+        }
+      }
+      const errorMessage = data?.message || data?.error || `Request failed (${res.status})`;
+      const error = new Error(errorMessage);
+      error.status = res.status;
+      error.body = data;
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    // Handle network errors
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      const networkError = new Error(
+        `Cannot connect to server at ${API_BASE}. ` +
+        `Please check if the backend is running. ` +
+        `For local development, set VITE_API_URL=http://localhost:4000/api in client/.env`
+      );
+      networkError.status = 0;
+      networkError.isNetworkError = true;
+      throw networkError;
+    }
     throw error;
   }
-
-  return data;
 }
 
 const getResume = () => request('/resume');

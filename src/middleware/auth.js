@@ -18,7 +18,11 @@ async function protect(req, res, next) {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, config.jwtSecret || 'your-secret-key-change-in-production');
+    if (!config.jwtSecret) {
+      logger.error('JWT_SECRET is not configured in auth middleware!');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+    const decoded = jwt.verify(token, config.jwtSecret);
 
     // Get user from token
     const user = await User.findById(decoded.id).select('-password');

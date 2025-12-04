@@ -1,122 +1,179 @@
-# Troubleshooting 500 Errors on Render
+# Troubleshooting Guide
 
-## Common Causes of 500 Errors
+## Signup/Connection Errors
 
-### 1. **MongoDB Connection Issues** (Most Common)
+### Error: `ERR_CONNECTION_REFUSED`
+
+This error means the frontend cannot connect to the backend API. Here are the most common causes and solutions:
+
+#### 1. **Backend Not Running (Local Development)**
+
+If you're running the frontend locally and trying to connect to a local backend:
+
+**Solution:**
+- Make sure the backend is running: `npm start` in the root directory
+- Check that the backend is listening on `http://localhost:4000`
+- Create a `client/.env` file with:
+  ```
+  VITE_API_URL=http://localhost:4000/api
+  ```
+- Restart your frontend dev server after creating/updating `.env`
+
+#### 2. **Render Backend is Down**
+
+If you're trying to connect to the deployed backend on Render:
+
+**Solution:**
+- Check Render dashboard: https://dashboard.render.com
+- Verify the service is running (not sleeping)
+- Check the service logs for errors
+- Free tier services on Render sleep after 15 minutes of inactivity - they wake up on the first request (may take 30-60 seconds)
+
+#### 3. **Wrong API URL**
+
+**Solution:**
+- Check the browser console for the API URL being used
+- Verify `VITE_API_URL` in `client/.env` (for local) or Render environment variables (for production)
+- Default URL is: `https://pitchpilot-api.onrender.com/api`
+
+### Error: `500 Internal Server Error`
+
+This means the backend is reachable but encountering an error. Common causes:
+
+#### 1. **Database Connection Issue**
 
 **Symptoms:**
-- 500 error on signup/signin
-- Error logs show "MongoDB connection failed"
+- Error logs mention MongoDB connection
+- Health check endpoint returns `database: disconnected`
 
-**Solutions:**
+**Solution:**
+- Check MongoDB Atlas Network Access - ensure `0.0.0.0/0` is whitelisted
+- Verify `MONGO_URI` in Render environment variables includes database name: `mongodb+srv://.../pitchpilot`
+- Check MongoDB Atlas cluster is running (free tier may pause)
+- See `MONGODB_SETUP.md` for detailed instructions
 
-1. **Check MongoDB Atlas Network Access:**
-   - Go to MongoDB Atlas → Network Access
-   - Add IP: `0.0.0.0/0` (allows all IPs - required for Render)
-   - Wait 1-2 minutes for changes to propagate
+#### 2. **Missing Environment Variables**
 
-2. **Verify MONGO_URI in Render:**
-   - Go to Render Dashboard → Your Service → Environment
-   - Check `MONGO_URI` is set correctly
-   - Format: `mongodb+srv://username:password@cluster.mongodb.net/pitchpilot?retryWrites=true&w=majority`
-   - Must include database name (`/pitchpilot`)
+**Symptoms:**
+- Error logs mention missing configuration
+- JWT_SECRET or other required vars not set
 
-3. **Check MongoDB Atlas Cluster Status:**
-   - Ensure cluster is running (not paused)
-   - Free tier clusters pause after inactivity
+**Solution:**
+- Check Render dashboard → Environment tab
+- Ensure all required variables are set:
+  - `MONGO_URI`
+  - `JWT_SECRET`
+  - `NODE_ENV=production`
+- For local development, check `.env` file in project root
 
-### 2. **Missing Environment Variables**
+#### 3. **User Already Exists (409 Conflict)**
 
-**Check in Render Dashboard → Environment:**
+**Symptoms:**
+- Error: "User with this email already exists"
 
-Required variables:
-- `MONGO_URI` - MongoDB connection string
-- `JWT_SECRET` - Random string (generate with: `openssl rand -base64 32`)
-- `NODE_ENV=production`
-- `PORT=10000` (or let Render set it)
+**Solution:**
+- Try signing in instead of signing up
+- Or use a different email address
 
-Optional but recommended:
-- `GEMINI_API_KEY` - For AI features
-- `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `GMAIL_SENDER` - For email sending
+## Debugging Steps
 
-### 3. **Check Render Logs**
+### 1. Check Backend Health
 
-1. Go to Render Dashboard → Your Service → Logs
-2. Look for error messages
-3. Common errors:
-   - `MongoServerError` - Database issue
-   - `JWT_SECRET not set` - Missing env var
-   - `Cannot find module` - Missing dependency
+Visit the health check endpoint:
+- Local: `http://localhost:4000/_health`
+- Production: `https://pitchpilot-api.onrender.com/_health`
 
-### 4. **Database Not Connected**
+Expected response:
+```json
+{
+  "status": "ok",
+  "env": "production",
+  "database": "connected"
+}
+```
 
-**Check connection status:**
-- Visit: `https://your-api.onrender.com/_health`
-- Should return: `{"status":"ok","env":"production"}`
+### 2. Check Backend Logs
 
-**If database is not connected:**
-- Check Render logs for MongoDB connection errors
-- Verify `MONGO_URI` is correct
-- Check MongoDB Atlas Network Access
+**Local:**
+- Check terminal where `npm start` is running
 
-### 5. **Debug Endpoint**
+**Render:**
+- Go to Render dashboard → Your service → Logs tab
+- Look for error messages, especially around:
+  - Database connection
+  - Missing environment variables
+  - JWT_SECRET errors
 
-Visit: `https://your-api.onrender.com/_debug/env`
+### 3. Check Frontend Console
 
-This shows:
-- Environment variables status
-- AI provider configuration
-- Gmail configuration
+Open browser DevTools (F12) → Console tab:
+- Look for API URL being used (should log on page load in dev mode)
+- Check for CORS errors
+- Check for network errors with details
 
-**Note:** Remove this endpoint in production for security.
+### 4. Test API Directly
 
-## Quick Debugging Steps
+Use curl or Postman to test the signup endpoint:
 
-1. **Check Render Logs:**
+```bash
+# Local
+curl -X POST http://localhost:4000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"test123"}'
+
+# Production
+curl -X POST https://pitchpilot-api.onrender.com/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"test123"}'
+```
+
+## Quick Fixes
+
+### For Local Development
+
+1. **Backend not starting:**
+   ```bash
+   cd /path/to/PitchPilot
+   npm install
+   npm start
    ```
-   Render Dashboard → Your Service → Logs
-   ```
 
-2. **Test Health Endpoint:**
-   ```
-   curl https://your-api.onrender.com/_health
-   ```
+2. **Frontend can't connect:**
+   - Create `client/.env`:
+     ```
+     VITE_API_URL=http://localhost:4000/api
+     ```
+   - Restart frontend dev server
 
-3. **Test Debug Endpoint:**
-   ```
-   curl https://your-api.onrender.com/_debug/env
-   ```
+3. **Database connection:**
+   - Check `.env` has correct `MONGO_URI`
+   - Ensure MongoDB is running (if using local MongoDB)
 
-4. **Check MongoDB Connection:**
-   - Verify `MONGO_URI` in Render environment
+### For Production (Render)
+
+1. **Service sleeping:**
+   - First request may take 30-60 seconds
+   - Consider upgrading to paid tier for always-on service
+
+2. **Database connection:**
    - Check MongoDB Atlas Network Access
-   - Test connection string in MongoDB Compass
+   - Verify `MONGO_URI` in Render environment variables
+   - Ensure database name is in URI: `/pitchpilot`
 
-5. **Verify Environment Variables:**
-   - All required vars are set
-   - No typos in variable names
-   - Values are correct (no extra spaces)
-
-## Common Error Messages
-
-### "MongoServerError: connection timeout"
-- **Fix:** Add `0.0.0.0/0` to MongoDB Atlas Network Access
-
-### "JWT_SECRET not set"
-- **Fix:** Add `JWT_SECRET` environment variable in Render
-
-### "Cannot find module"
-- **Fix:** Check `package.json` includes all dependencies
-- Rebuild service in Render
-
-### "Database connection error"
-- **Fix:** Check `MONGO_URI` format and MongoDB Atlas settings
+3. **Environment variables:**
+   - Go to Render dashboard → Environment tab
+   - Verify all required variables are set
+   - Redeploy after adding/updating variables
 
 ## Still Having Issues?
 
-1. Check Render service logs for detailed error messages
-2. Verify all environment variables are set correctly
-3. Test MongoDB connection string separately
-4. Check if service is sleeping (free tier limitation)
-5. Try redeploying the service
+1. Check the error message in the browser console
+2. Check backend logs (Render dashboard or local terminal)
+3. Verify all environment variables are set correctly
+4. Test the health check endpoint
+5. Try the API directly with curl/Postman
 
+If the issue persists, check:
+- `README.md` for setup instructions
+- `DEPLOYMENT.md` for deployment-specific issues
+- `MONGODB_SETUP.md` for database setup

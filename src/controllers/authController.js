@@ -6,7 +6,11 @@ const logger = require('../utils/logger');
 
 // Generate JWT token
 function generateToken(userId) {
-  return jwt.sign({ id: userId }, config.jwtSecret || 'your-secret-key-change-in-production', {
+  if (!config.jwtSecret) {
+    logger.error('JWT_SECRET is not configured!');
+    throw new Error('Server configuration error: JWT_SECRET is missing');
+  }
+  return jwt.sign({ id: userId }, config.jwtSecret, {
     expiresIn: '30d'
   });
 }
