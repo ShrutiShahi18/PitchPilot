@@ -11,6 +11,49 @@ function getToken() {
   return localStorage.getItem('token');
 }
 
+// Detect network errors more reliably across different browsers and environments
+function isNetworkError(error) {
+  if (!error) return false;
+  
+  // Check error name/types
+  const errorName = error.name || '';
+  const errorMessage = (error.message || '').toLowerCase();
+  
+  // TypeError is what fetch throws for network errors
+  if (errorName === 'TypeError') {
+    // Check for common network error message patterns
+    const networkPatterns = [
+      'fetch',
+      'network',
+      'connection',
+      'failed to fetch',
+      'networkerror',
+      'network request failed',
+      'err_connection_refused',
+      'err_connection_reset',
+      'err_connection_timed_out',
+      'err_network_changed',
+      'err_internet_disconnected',
+      'the network connection was lost',
+      'networkerror when attempting to fetch resource',
+      'load failed',
+      'cors',
+      'refused to connect',
+      'could not connect',
+      'unable to connect'
+    ];
+    
+    return networkPatterns.some(pattern => errorMessage.includes(pattern));
+  }
+  
+  // Check for other network-related error names
+  if (errorName === 'NetworkError' || errorName === 'DOMException') {
+    return true;
+  }
+  
+  return false;
+}
+
 async function request(path, { method = 'GET', body, headers } = {}) {
   const token = getToken();
   const url = `${API_BASE}${path}`;
@@ -56,7 +99,7 @@ async function request(path, { method = 'GET', body, headers } = {}) {
     return data;
   } catch (error) {
     // Handle network errors (connection refused, timeout, etc.)
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    if (isNetworkError(error)) {
       const networkError = new Error(
         `Cannot connect to server at ${API_BASE}. ` +
         `Please check if the backend is running. ` +
@@ -119,7 +162,7 @@ async function uploadResume(file) {
     return data;
   } catch (error) {
     // Handle network errors
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    if (isNetworkError(error)) {
       const networkError = new Error(
         `Cannot connect to server at ${API_BASE}. ` +
         `Please check if the backend is running. ` +
