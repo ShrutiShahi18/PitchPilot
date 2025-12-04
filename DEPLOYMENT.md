@@ -102,9 +102,12 @@ Click **"Create Web Service"** and wait for deployment (usually 2-3 minutes).
 VITE_API_URL=https://pitchpilot-api.onrender.com/api
 ```
 
-**Important**: Replace `pitchpilot-api.onrender.com` with your actual backend URL from Step 2.
+**Important**: 
+- Replace `pitchpilot-api.onrender.com` with your actual backend URL from Step 2
+- **For Render deployment:** Set this in Render dashboard (Environment tab), NOT in a .env file
+- **For local development:** Create `client/.env` with `VITE_API_URL=http://localhost:4000/api` (see `client/.env.example`)
 
-**Note**: The frontend code has been updated to use `https://pitchpilot-api.onrender.com/api` as the default, so if you're using that exact backend URL, you don't need to set this variable. For local development, create a `client/.env` file with `VITE_API_URL=http://localhost:4000/api`.
+**Note**: The frontend code defaults to `https://pitchpilot-api.onrender.com/api` if `VITE_API_URL` is not set, so it will work even without setting this variable if you're using that exact URL.
 
 ### 3.3 Deploy
 
