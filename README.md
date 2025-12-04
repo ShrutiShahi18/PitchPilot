@@ -2,7 +2,7 @@
 
 ### 🎥 Video Demonstration
 
-📹 **Watch the app in action:** See `Recording 2025-12-05 013006.mp4` in the repository root (or upload to YouTube/Vimeo and link here for better accessibility)
+https://github.com/user-attachments/assets/ea6c5a47-c9f4-4e45-a123-55f6a6471a29
 
 > 🚀 **Live Demo:** [https://pitchpilotpitchpilot.onrender.com](https://pitchpilotpitchpilot.onrender.com)  
 > 📡 **API:** [https://pitchpilot-api.onrender.com](https://pitchpilot-api.onrender.com)  
