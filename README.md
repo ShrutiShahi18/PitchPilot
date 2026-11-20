@@ -19,7 +19,7 @@ https://github.com/user-attachments/assets/ea6c5a47-c9f4-4e45-a123-55f6a6471a29
 ![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=flat&logo=jsonwebtokens&logoColor=white)
 ![Render](https://img.shields.io/badge/Render-Live_Deployment-46E3B7?style=flat&logo=render&logoColor=black)
 
-PitchPilot started as a simple idea: take some of the repetitive work out of cold outreach for job hunting.
+PitchPilot started as a simple tool with the idea: take some of the repetitive work out of cold outreach for job hunting.
 
 You can create leads, generate emails from a job description and LinkedIn information, send messages through Gmail, and keep track of replies and follow-ups from one place. The app also supports campaigns, so outreach can be organized instead of being handled one email at a time.
 
